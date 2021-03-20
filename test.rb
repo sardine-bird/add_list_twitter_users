@@ -10,13 +10,13 @@ Dotenv.load
     config.access_token_secret = ENV['twitter_access_token_secret']
 end
 
-## 本番
 def read_listed_users
 	@list=nil
 	puts "アカウントを追加したいtiwtterリストの名前を教えてください"
 	adding_list_name=gets.chomp
 	@client.lists.each do |l|
 		@list=l if l.name==adding_list_name
+		break unless @list==nil
 	end
 
 	@listed_users_id=[]
@@ -27,11 +27,13 @@ end
 
 def serach_matched_users
 	counts=0
-	tag="#技育祭" #ここを変更すると検索するタグを変えることが出来る。
+	puts "検索ワード(ハッシュタグなど)を入力して下さい。\n
+				複数ある場合は半角スペースを空けること"
+	search_words=gets.chomp
 	users_id=[]
 	
 	puts "取得したツイート数(進捗)："
-	@client.search("#{tag}", ilang: 'ja', result_type: 'mixed', count: 50).map do |tweet|
+	@client.search("#{search_words} -rt", ilang: 'ja', result_type: 'mixed', count: 50).map do |tweet|
 		users_id << tweet.user.screen_name
 		counts+=1
 		puts counts if counts%100==0
@@ -49,7 +51,7 @@ def add_list
 	@add_list_users_id.each do |add_list_user_id|
 		@client.add_list_member(@list.slug, add_list_user_id)
 		add_counts+=1
-		puts add_counts if add_counts%10==0
+		puts add_counts if add_counts%20==0
 	end
 	puts "リストに追加したユーザー数(最終結果)：#{add_counts}"
 end
